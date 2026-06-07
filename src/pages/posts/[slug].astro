@@ -1,0 +1,37 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('posts')).filter((post) => !post.data.draft);
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+---
+
+<BaseLayout title={`${post.data.title} | 온의 기술 노트`} description={post.data.description}>
+  <main class="article">
+    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+    <h1>{post.data.title}</h1>
+    <p class="article-description">{post.data.description}</p>
+    <div class="tags">
+      {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+    </div>
+    <article class="article-body">
+      <Content />
+    </article>
+  </main>
+</BaseLayout>

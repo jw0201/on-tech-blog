@@ -1,0 +1,61 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('posts'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 12);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout>
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">오늘의 기술을 내일 써먹게 정리합니다.</h1>
+        <p>
+          프론트엔드, 백엔드, AI 도구, 개발 생산성, 배포와 운영까지. 짧지만
+          실전적인 기술 메모를 꾸준히 쌓는 블로그입니다.
+        </p>
+      </div>
+      <aside class="signal">
+        하루 10개의 기술 글을 목표로, 넓게 훑고 쓸모 있는 패턴만 남깁니다.
+      </aside>
+    </section>
+
+    <div class="section-title">
+      <span>Latest Notes</span>
+      <a href={`${base}archive/`}>전체 보기</a>
+    </div>
+
+    {posts.length === 0 ? (
+      <p class="empty">아직 공개된 글이 없습니다. 첫 생성 작업을 기다리는 중입니다.</p>
+    ) : (
+      <section class="post-grid" aria-label="Latest posts">
+        {posts.map((post) => (
+          <article class="post-card">
+            <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+            <div>
+              <h2>
+                <a href={`${base}posts/${post.id}/`}>{post.data.title}</a>
+              </h2>
+              <p>{post.data.description}</p>
+              <div class="tags">
+                {post.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+    )}
+  </main>
+</BaseLayout>
